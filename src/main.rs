@@ -1,15 +1,15 @@
 use std::env;
-use std::fs;
 use std::path::Path;
+use xls::utils::{list_directory, print_table};
 
 const VERSION: &str = "0.0.1";
 
 fn print_help() {
     println!(
-        "rls - simple ls utility written in Rust
+        "xls - simple ls utility written in Rust
 
 USAGE:
-    rls [OPTIONS] [PATH]
+    xls [OPTIONS] [PATH]
 
 OPTIONS:
     -h, --help       Print this help message
@@ -22,31 +22,12 @@ ARGS:
 }
 
 fn print_version() {
-    println!("rls version {}", VERSION);
-}
-
-fn list_directory(path: &Path) {
-    match fs::read_dir(path) {
-        Ok(entries) => {
-            for entry in entries {
-                match entry {
-                    Ok(entry) => {
-                        let name = entry.file_name();
-                        print!("{}  ", name.to_string_lossy());
-                    }
-                    Err(e) => eprintln!("Error reading entry: {}", e),
-                }
-            }
-            println!();
-        }
-        Err(e) => eprintln!("Cannot access {}: {}", path.display(), e),
-    }
+    println!("xls version {}", VERSION);
 }
 
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    // Handle flags
     if args.len() > 1 {
         match args[1].as_str() {
             "-h" | "--help" => {
@@ -61,12 +42,12 @@ fn main() {
         }
     }
 
-    // Determine path
     let path = if args.len() > 1 {
         Path::new(&args[1])
     } else {
         Path::new(".")
     };
 
-    list_directory(path);
+    let entries = list_directory(path);
+    print_table(&entries);
 }
