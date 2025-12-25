@@ -48,11 +48,11 @@ pub fn print_table(entries: &[Entry]) {
     let mut files = 0;
     let mut links = 0;
 
-    let border = format!("|{}|", "-".repeat(TABLE_WIDTH - 2));
+    let border = format!("{}", "-".repeat(TABLE_WIDTH - 2));
 
     println!("{}", border);
     println!(
-        "|{:<PERM_WIDTH$} {:>SIZE_WIDTH$} {:<NAME_WIDTH$}|",
+        "{:<PERM_WIDTH$} {:>SIZE_WIDTH$} {:<NAME_WIDTH$}",
         "PERMS", "SIZE", "NAME"
     );
     println!("{}", border);
@@ -67,7 +67,7 @@ pub fn print_table(entries: &[Entry]) {
         let perm = format!("{}{}", e.entry_type.marker(), e.permissions);
 
         println!(
-            "|{:<PERM_WIDTH$} {:>SIZE_WIDTH$} {:<NAME_WIDTH$}|",
+            "{:<PERM_WIDTH$} {:>SIZE_WIDTH$} {:<NAME_WIDTH$}",
             perm,
             human_size(e.size),
             truncate(&e.name, NAME_WIDTH)
@@ -76,10 +76,9 @@ pub fn print_table(entries: &[Entry]) {
 
     println!("{}", border);
     println!(
-        "|DIRECTORIES: {}   FILES: {}    LINKS:{:<11}|",
+        "DIRECTORIES: {}   FILES: {}    LINKS:{:<11}",
         dirs, files, links
     );
-    println!("{}", border);
 }
 
 pub fn list_directory(path: &Path) -> Vec<Entry> {
