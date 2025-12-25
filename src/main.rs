@@ -1,6 +1,11 @@
+pub mod defs;
+pub mod formatter;
+pub mod utils;
+
 use std::env;
 use std::path::Path;
-use xls::utils::{list_directory, print_table};
+
+use crate::utils::{list_directory, print_table};
 
 const VERSION: &str = "0.0.1";
 

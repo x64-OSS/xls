@@ -1,5 +1,3 @@
-pub mod utils;
-
 #[derive(Debug)]
 pub enum EntryType {
     Dir,
@@ -31,4 +29,5 @@ pub struct Entry {
     pub size: u64,
     pub permissions: String,
     pub entry_type: EntryType,
+    pub last_modified: String
 }

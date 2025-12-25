@@ -1,47 +1,17 @@
+use crate::defs::{Entry, EntryType};
+use crate::formatter::{formatted_entry_permissions, formatted_entry_size};
 use std::fs;
-use std::fs::Metadata;
-use std::os::unix::fs::PermissionsExt;
+
+use std::os::unix::fs::MetadataExt;
 use std::path::Path;
-
-use crate::{Entry, EntryType};
-
-pub fn format_permissions(meta: &Metadata) -> String {
-    let mode = meta.permissions().mode();
-    let flags = [
-        (mode & 0o400, 'r'),
-        (mode & 0o200, 'w'),
-        (mode & 0o100, 'x'),
-        (mode & 0o040, 'r'),
-        (mode & 0o020, 'w'),
-        (mode & 0o010, 'x'),
-        (mode & 0o004, 'r'),
-        (mode & 0o002, 'w'),
-        (mode & 0o001, 'x'),
-    ];
-
-    flags
-        .iter()
-        .map(|(bit, ch)| if *bit != 0 { *ch } else { '-' })
-        .collect()
-}
-
-pub fn sort_entries(entries: &mut Vec<Entry>) {
-    entries.sort_by_key(|e| e.entry_type.order());
-}
 
 const PERM_WIDTH: usize = 12;
 const SIZE_WIDTH: usize = 8;
-const NAME_WIDTH: usize = 24;
+const NAME_WIDTH: usize = 36;
+const MODIFIED_WIDTH: usize = 12;
 
-const TABLE_WIDTH: usize = 1 + PERM_WIDTH + 1 + SIZE_WIDTH + 1 + NAME_WIDTH + 1;
-
-fn truncate(s: &str, max: usize) -> String {
-    if s.len() <= max {
-        s.to_string()
-    } else {
-        format!("{}…", &s[..max - 1])
-    }
-}
+const TABLE_WIDTH: usize =
+    1 + PERM_WIDTH + 1 + SIZE_WIDTH + 1 + NAME_WIDTH + 1 + MODIFIED_WIDTH + 1;
 
 pub fn print_table(entries: &[Entry]) {
     let mut dirs = 0;
@@ -52,8 +22,8 @@ pub fn print_table(entries: &[Entry]) {
 
     println!("{}", border);
     println!(
-        "{:<PERM_WIDTH$} {:>SIZE_WIDTH$} {:<NAME_WIDTH$}",
-        "PERMS", "SIZE", "NAME"
+        "{:<PERM_WIDTH$} {:>SIZE_WIDTH$} {:<NAME_WIDTH$} {:>MODIFIED_WIDTH$}",
+        "PERMS", "SIZE", "NAME", "MODIFIED"
     );
     println!("{}", border);
 
@@ -65,12 +35,11 @@ pub fn print_table(entries: &[Entry]) {
         }
 
         let perm = format!("{}{}", e.entry_type.marker(), e.permissions);
+        let size = formatted_entry_size(e.size);
 
         println!(
-            "{:<PERM_WIDTH$} {:>SIZE_WIDTH$} {:<NAME_WIDTH$}",
-            perm,
-            human_size(e.size),
-            truncate(&e.name, NAME_WIDTH)
+            "{:<PERM_WIDTH$} {:>SIZE_WIDTH$} {:<NAME_WIDTH$} {:>MODIFIED_WIDTH$}",
+            perm, size, e.name, e.last_modified
         );
     }
 
@@ -100,6 +69,15 @@ pub fn list_directory(path: &Path) -> Vec<Entry> {
             Err(_) => continue,
         };
 
+        let last_modified: String = if let Ok(time) = meta.modified() {
+            String::from("--")
+        } else {
+            String::from("-")
+        };
+
+        let size = meta.size();
+        let permissions = formatted_entry_permissions(&meta);
+
         let entry_type = if meta.is_dir() {
             EntryType::Dir
         } else if meta.is_file() {
@@ -110,28 +88,16 @@ pub fn list_directory(path: &Path) -> Vec<Entry> {
 
         entries_list.push(Entry {
             name,
-            size: meta.len(),
-            permissions: format_permissions(&meta),
+            size,
+            permissions,
             entry_type,
+            last_modified,
         });
     }
 
     entries_list
 }
 
-pub fn human_size(size: u64) -> String {
-    const UNITS: [&str; 5] = ["B", "K", "M", "G", "T"];
-    let mut size = size as f64;
-    let mut unit = 0;
-
-    while size >= 1024.0 && unit < UNITS.len() - 1 {
-        size /= 1024.0;
-        unit += 1;
-    }
-
-    if unit == 0 {
-        format!("{}{}", size as u64, UNITS[unit])
-    } else {
-        format!("{:.1}{}", size, UNITS[unit])
-    }
+pub fn sort_entries(entries: &mut Vec<Entry>) {
+    entries.sort_by_key(|e| e.entry_type.order());
 }
