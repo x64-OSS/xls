@@ -36,10 +36,14 @@ pub fn print_table(entries: &[Entry]) {
 
         let perm = format!("{}{}", e.entry_type.marker(), e.permissions);
         let size = formatted_entry_size(e.size);
+        let name = match e.entry_type {
+            EntryType::Dir => format!("{}/", e.name),
+            _ => e.name.clone(),
+        };
 
         println!(
             "{:<PERM_WIDTH$} {:>SIZE_WIDTH$} {:<NAME_WIDTH$} {:>MODIFIED_WIDTH$}",
-            perm, size, e.name, e.last_modified
+            perm, size, name, e.last_modified
         );
     }
 
