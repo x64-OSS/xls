@@ -1,4 +1,6 @@
 use crate::defs::{Entry, EntryType};
+use colored::Colorize;
+
 use crate::formatter::{formatted_entry_permissions, formatted_entry_size};
 use std::fs;
 
@@ -8,7 +10,7 @@ use std::path::Path;
 const PERM_WIDTH: usize = 12;
 const SIZE_WIDTH: usize = 8;
 const NAME_WIDTH: usize = 36;
-const MODIFIED_WIDTH: usize = 12;
+const MODIFIED_WIDTH: usize = 24;
 
 const TABLE_WIDTH: usize =
     1 + PERM_WIDTH + 1 + SIZE_WIDTH + 1 + NAME_WIDTH + 1 + MODIFIED_WIDTH + 1;
@@ -37,8 +39,9 @@ pub fn print_table(entries: &[Entry]) {
         let perm = format!("{}{}", e.entry_type.marker(), e.permissions);
         let size = formatted_entry_size(e.size);
         let name = match e.entry_type {
-            EntryType::Dir => format!("{}/", e.name),
-            _ => e.name.clone(),
+            EntryType::Dir => e.name.bold(),
+            EntryType::Link => e.name.italic(),
+            _ => e.name.normal(),
         };
 
         println!(
@@ -74,9 +77,10 @@ pub fn list_directory(path: &Path) -> Vec<Entry> {
         };
 
         let last_modified: String = if let Ok(time) = meta.modified() {
-            String::from("--")
+            let syst = time_format::from_system_time(time).unwrap();
+            time_format::strftime_utc("%Y-%m-%d %H:%M:%S", syst).unwrap()
         } else {
-            String::from("-")
+            String::from("--")
         };
 
         let size = meta.size();

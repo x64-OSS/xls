@@ -1,18 +1,5 @@
-use crate::defs::EntryType;
 use std::fs::Metadata;
 use std::os::unix::fs::PermissionsExt;
-
-const BOLD: &str = "\x1b[1m";
-const RESET: &str = "\x1b[0m";
-const ITALIC: &str = "\x1b[3m";
-
-pub fn bold_formatter(val: &str) -> String {
-    return format!("{}{}{} ", BOLD, val, RESET);
-}
-
-pub fn italic_formatter(val: &str) -> String {
-    return format!("{}{}{} ", ITALIC, val, RESET);
-}
 
 pub fn truncate(s: &str, max: usize) -> String {
     if s.len() <= max {
@@ -37,14 +24,6 @@ pub fn formatted_entry_size(size: u64) -> String {
     } else {
         format!("{:.1}{}", size, UNITS[unit])
     }
-}
-
-pub fn formatted_entry_name(val: &str, ent_type: &EntryType) -> String {
-    return match ent_type {
-        EntryType::Dir => bold_formatter(val),
-        EntryType::Link => italic_formatter(val),
-        EntryType::File => val.to_string(),
-    };
 }
 
 pub fn formatted_entry_permissions(meta: &Metadata) -> String {
