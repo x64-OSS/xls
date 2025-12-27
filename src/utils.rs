@@ -39,7 +39,7 @@ pub fn print_table(entries: &[Entry]) {
         let perm = format!("{}{}", e.entry_type.marker(), e.permissions);
         let size = formatted_entry_size(e.size);
         let name = match e.entry_type {
-            EntryType::Dir => e.name.bold(),
+            EntryType::Dir => e.name.blue().bold(),
             EntryType::Link => e.name.italic(),
             _ => e.name.normal(),
         };
