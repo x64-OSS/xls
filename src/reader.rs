@@ -18,7 +18,9 @@ pub fn list_directory(path: &Path, args: &Args) -> Vec<Entry> {
 
     for entry in entries.flatten() {
         let name = entry.file_name().to_string_lossy().to_string();
+        let file_type = entry.file_type().expect("Failed to get file type");
 
+        // FIXME: this logic can could be improved
         if !args.all && name.starts_with('.') {
             continue;
         }
@@ -35,6 +37,12 @@ pub fn list_directory(path: &Path, args: &Args) -> Vec<Entry> {
             String::from("--")
         };
 
+        let inode: Option<String> = if args.inode {
+            Some(meta.ino().to_string())
+        } else {
+            None
+        };
+
         let size = meta.size();
         let permissions = formatted_entry_permissions(&meta);
 
@@ -43,6 +51,8 @@ pub fn list_directory(path: &Path, args: &Args) -> Vec<Entry> {
             size,
             permissions,
             last_modified,
+            inode,
+            file_type,
         });
     }
 

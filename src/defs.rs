@@ -1,36 +1,47 @@
-use clap::{Parser, ValueEnum};
+use std::fs::FileType;
+
+use clap::Parser;
 
 #[derive(Debug)]
 pub struct Entry {
     pub name: String,
     pub size: u64,
+    pub file_type: FileType,
     pub permissions: String,
     pub last_modified: String,
+    pub inode: Option<String>,
 }
 
-#[derive(Parser, Debug, Clone, ValueEnum)]
-pub enum PrintStyle {
-    #[clap()]
-    Normal,
-    List,
-    Tree,
+pub enum SortType {
+    SortName,
+    SortTime,
+    SortExtension,
+    SortSize,
+    SortVersion,
+    SortNone,
+    SortNumTypes,
+}
+
+pub enum IgnoreMode {
+    IgnoreDefault,
+    IgnoreDotAndDotDot,
 }
 
 #[derive(Parser, Debug)]
 #[command(
     author = "x64-tech",
     version = "0.0.2",
-    about = "List all files",
-    long_about = "Small utility tool for list files"
+    about = "List files info",
+    long_about = "List information about the FILEs (the current directory by default)."
 )]
 pub struct Args {
-    #[arg(short, long, default_value = ".")]
+    #[arg(default_value = ".")]
     pub path: String,
 
     #[arg(short, long, help = "do not ignore entries starting with .")]
     pub all: bool,
 
-    #[arg(short = 'A', long, help="do not list implied . and ..")]
+    #[arg(short = 'A', long, help = "do not list implied . and ..")]
     pub all_most: bool,
 
     #[arg(long, help = "Print authors of all files")]
@@ -42,6 +53,32 @@ pub struct Args {
     #[arg(short, long, help = "print the index number of each file")]
     pub inode: bool,
 
-    #[arg(short, long, value_enum, default_value_t=PrintStyle::Normal)]
-    pub style: PrintStyle,
+    #[arg(short, long, help = "Print entries in list format")]
+    pub list: bool,
+
+    #[arg(short = 'x', help = "list entries by lines instead of by columns")]
+    pub line: bool,
+
+    #[arg(short, long, help = "reverse order while sorting")]
+    pub reverse: bool,
+
+    #[arg(short = 'R', long, help = "list subdirectories recursively")]
+    pub recursive: bool,
+
+    #[arg(short = 'S', help = "sort by file size, largest first")]
+    pub sort_by_size: bool,
+
+    #[arg(short = 'X', help = "sort alphabetically by entry extension")]
+    pub sort_by_extension: bool,
+
+    #[arg(short = 'Q', help = "enclose entry names in double quotes")]
+    pub quoted_name: bool,
+
+    #[arg(
+        long,
+        help = "use quoting style WORD for entry names:
+literal, locale, shell, shell-always,
+shell-escape, shell-escape-always, c, escape"
+    )]
+    pub quoting_style: Option<String>,
 }
