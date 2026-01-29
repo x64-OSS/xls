@@ -15,7 +15,7 @@ use crate::sorter::sort_entires;
 fn main() {
     let args = Args::parse();
     let path = Path::new(&args.path);
-    let entries = list_directory(path, &args);
-    let sorted_entries = sort_entires(entries, &args);
-    print_entries(sorted_entries, &args);
+    let mut entries = list_directory(path, &args);
+    sort_entires(&mut entries, &args);
+    print_entries(entries, &args);
 }

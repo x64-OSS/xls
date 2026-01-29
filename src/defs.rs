@@ -70,6 +70,9 @@ pub struct Args {
 
     #[arg(short = 'X', help = "sort alphabetically by entry extension")]
     pub sort_by_extension: bool,
+    
+    #[arg(short = 't', help = "sort by time, newest first")]
+    pub sort_by_time: bool,
 
     #[arg(short = 'Q', help = "enclose entry names in double quotes")]
     pub quoted_name: bool,
