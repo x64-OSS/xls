@@ -1,6 +1,6 @@
 use std::fs::FileType;
 
-use clap::Parser;
+use clap::{Parser};
 
 #[derive(Debug)]
 pub struct Entry {
@@ -10,6 +10,8 @@ pub struct Entry {
     pub permissions: String,
     pub last_modified: String,
     pub inode: Option<String>,
+    pub author: u32,
+    pub owner: u32
 }
 
 pub enum SortType {
@@ -23,8 +25,15 @@ pub enum SortType {
 }
 
 pub enum IgnoreMode {
-    IgnoreDefault,
-    IgnoreDotAndDotDot,
+    IgnoreDefault, // ignore hidden files with . prefix
+    IgnoreNone,
+    IgnoreDotAndDotDot, // ignore . and ..
+}
+
+pub enum ListMode {
+    Default,
+    List,
+    Column,
 }
 
 #[derive(Parser, Debug)]
@@ -47,6 +56,9 @@ pub struct Args {
     #[arg(long, help = "Print authors of all files")]
     pub author: bool,
 
+    #[arg(short = 'B', long, help = "do not list implied entries ending with ~")]
+    pub ignore_backups: bool,
+
     #[arg(short, long, help = "Print only directory not their contant")]
     pub directry: bool,
 
@@ -55,6 +67,9 @@ pub struct Args {
 
     #[arg(short, long, help = "Print entries in list format")]
     pub list: bool,
+
+    #[arg(short = 'C', long, help = "list entries by columns")]
+    pub column: bool,
 
     #[arg(short = 'x', help = "list entries by lines instead of by columns")]
     pub line: bool,
@@ -65,13 +80,13 @@ pub struct Args {
     #[arg(short = 'R', long, help = "list subdirectories recursively")]
     pub recursive: bool,
 
-    #[arg(short = 'S', help = "sort by file size, largest first")]
+    #[arg(short = 'S', long, help = "sort by file size, largest first")]
     pub sort_by_size: bool,
 
-    #[arg(short = 'X', help = "sort alphabetically by entry extension")]
+    #[arg(short = 'X', long, help = "sort alphabetically by entry extension")]
     pub sort_by_extension: bool,
-    
-    #[arg(short = 't', help = "sort by time, newest first")]
+
+    #[arg(short = 't', long, help = "sort by time, newest first")]
     pub sort_by_time: bool,
 
     #[arg(short = 'Q', help = "enclose entry names in double quotes")]
@@ -84,4 +99,38 @@ literal, locale, shell, shell-always,
 shell-escape, shell-escape-always, c, escape"
     )]
     pub quoting_style: Option<String>,
+}
+
+impl Args {
+    pub fn parse_sort_type(&self) -> SortType {
+        if self.sort_by_extension {
+            SortType::SortExtension
+        } else if self.sort_by_size {
+            SortType::SortSize
+        } else if self.sort_by_time {
+            SortType::SortTime
+        } else {
+            SortType::SortName
+        }
+    }
+
+    pub fn parse_ignore_mode(&self) -> IgnoreMode {
+        if self.all {
+            IgnoreMode::IgnoreNone
+        } else if self.all_most {
+            IgnoreMode::IgnoreDotAndDotDot
+        } else {
+            IgnoreMode::IgnoreDefault
+        }
+    }
+
+    pub fn parse_list_mode(&self) -> ListMode {
+        if self.list {
+            ListMode::List
+        } else if self.column {
+            ListMode::Column
+        } else {
+            ListMode::Default
+        }
+    }
 }

@@ -7,4 +7,5 @@ edition = "2024"
 clap = { version = "4.5.20", features = ["derive"] }
 colored = "3.0.0"
 time-format = "1.2.2"
+users = "0.11"
 
