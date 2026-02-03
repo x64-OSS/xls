@@ -14,6 +14,13 @@ pub struct Entry {
     pub owner: u32
 }
 
+#[derive(Debug)]
+pub struct FileTypeCount {
+    pub files: usize,
+    pub dirs: usize,
+    pub links: usize
+}
+
 pub enum SortType {
     SortName,
     SortTime,

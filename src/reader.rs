@@ -1,21 +1,26 @@
-use crate::defs::{Args, Entry, IgnoreMode, ListMode};
+use crate::defs::{Args, Entry, FileTypeCount, IgnoreMode};
 use crate::formatter::formatted_entry_permissions;
-use std::fs::{self, FileType, metadata};
-use users::get_user_by_uid;
 
+use colored::Colorize;
+
+use std::fs;
 use std::os::unix::fs::MetadataExt;
 use std::path::Path;
 
-pub fn list_directory(path: &Path, args: &Args, ignore_mode: &IgnoreMode) -> Vec<Entry> {
-    let mut entries_list = Vec::new();
+pub struct EntryReturn {
+    pub entries: Vec<Entry>,
+    pub counts: FileTypeCount,
+}
 
-    let entries = match fs::read_dir(path) {
-        Ok(e) => e,
-        Err(e) => {
-            eprintln!("Cannot access {}: {}", path.display(), e);
-            return entries_list;
-        }
+pub fn list_directory(path: &Path, args: &Args, ignore_mode: &IgnoreMode) -> EntryReturn {
+    let mut entries_list = Vec::new();
+    let mut file_type_count = FileTypeCount {
+        files: 0,
+        dirs: 0,
+        links: 0,
     };
+
+    let entries = fs::read_dir(path).expect("Failed to read directory");
 
     for entry in entries.flatten() {
         let name = entry.file_name().to_string_lossy().to_string();
@@ -40,10 +45,18 @@ pub fn list_directory(path: &Path, args: &Args, ignore_mode: &IgnoreMode) -> Vec
             }
         }
 
-        let meta = match entry.metadata() {
-            Ok(m) => m,
-            Err(_) => continue,
+        let name = if file_type.is_dir() {
+            file_type_count.dirs += 1;
+            name.blue().bold().to_string()
+        } else if file_type.is_symlink() {
+            file_type_count.links += 1;
+            name.italic().to_string()
+        } else {
+            file_type_count.files += 1;
+            name.normal().to_string()
         };
+
+        let meta = entry.metadata().expect("Failed to read file metadata");
 
         let owner = meta.uid();
         let author = meta.gid();
@@ -76,5 +89,8 @@ pub fn list_directory(path: &Path, args: &Args, ignore_mode: &IgnoreMode) -> Vec
         });
     }
 
-    entries_list
+    return EntryReturn {
+        entries: entries_list,
+        counts: file_type_count,
+    };
 }

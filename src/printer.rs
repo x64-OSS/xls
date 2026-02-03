@@ -1,9 +1,4 @@
-use std::fmt::format;
-
-use colored::Colorize;
-
-use crate::defs::{Args, Entry};
-use crate::formatter::formatted_entry_size;
+use crate::{defs::ListMode, reader::EntryReturn};
 
 const PERM_WIDTH: usize = 12;
 const SIZE_WIDTH: usize = 6;
@@ -13,58 +8,38 @@ const OWNER_WIDTH: usize = 18;
 const INODE_WIDTH: usize = 8;
 const DATE_WIDTH: usize = 12;
 
-pub fn print_entries(entries: Vec<Entry>, args: &Args) {
-    if args.list {
-        print_list_entries(entries, args);
-    } else if args.column {
-        print_column_entries(entries);
-    } else {
-        print_normal_entries(entries);
+pub fn print_entries(entry_return: &EntryReturn, list_mode: &ListMode) {
+    match list_mode {
+        ListMode::Column => print_column_entries(&entry_return),
+        ListMode::List => print_list_entries(&entry_return),
+        ListMode::Default => print_default_entries(&entry_return),
     }
 }
 
-fn print_list_entries(entries: Vec<Entry>, args: &Args) {
-    let mut placeholder = String::new();
-    let mut values: Vec<String> = Vec::new();
-
-    if args.inode {
-        placeholder.push_str("{:<INODE_WIDTH$}");
-    }
-
-    for entry in entries {
-        let size = formatted_entry_size(entry.size);
-
-        let name = if entry.file_type.is_dir() {
-            entry.name.blue().bold()
-        } else if entry.file_type.is_symlink() {
-            entry.name.italic()
-        } else {
-            entry.name.normal()
-        };
-
-        
-
-        let mut placeholder = String::new();
-        let mut values: Vec<String> = Vec::new();
-
-
-    }
+fn print_list_entries(entry_return: &EntryReturn) {
+    println!("W'll print entries in list");
 }
 
-fn print_normal_entries(entries: Vec<Entry>) {
-    for entry in entries {
-        let name = if entry.file_type.is_dir() {
-            entry.name.blue().bold()
-        } else if entry.file_type.is_symlink() {
-            entry.name.italic()
-        } else {
-            entry.name.normal()
-        };
-        print!("{}  ", name);
+fn print_column_entries(entry_return: &EntryReturn) {
+    println!("w'll print entries in columns")
+}
+
+fn print_default_entries(entry_return: &EntryReturn) {
+    let mut print_size: usize = 0;
+
+    for entry in &entry_return.entries {
+        print_size += entry.name.len() + 2
+    }
+
+    // Here 20 is the width of terminal, if the names of entries + 2 with each
+    // exceads the terminal width then it will print entries in column
+    if print_size > 20 {
+        print_column_entries(entry_return);
+        return;
+    }
+
+    for entry in &entry_return.entries {
+        print!("{}  ", entry.name);
     }
     println!();
-}
-
-fn print_column_entries(entries: Vec<Entry>) {
-    todo!()
 }
