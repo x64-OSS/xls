@@ -4,6 +4,7 @@ pub mod formatter;
 pub mod printer;
 pub mod reader;
 pub mod sorter;
+pub mod utils;
 
 use clap::Parser;
 

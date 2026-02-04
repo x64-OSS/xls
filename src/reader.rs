@@ -10,9 +10,11 @@ use std::path::Path;
 pub struct EntryReturn {
     pub entries: Vec<Entry>,
     pub counts: FileTypeCount,
+    pub longest_name_len: usize,
 }
 
 pub fn list_directory(path: &Path, args: &Args, ignore_mode: &IgnoreMode) -> EntryReturn {
+    let mut long_name_size = 0;
     let mut entries_list = Vec::new();
     let mut file_type_count = FileTypeCount {
         files: 0,
@@ -24,6 +26,10 @@ pub fn list_directory(path: &Path, args: &Args, ignore_mode: &IgnoreMode) -> Ent
 
     for entry in entries.flatten() {
         let name = entry.file_name().to_string_lossy().to_string();
+        if name.len().gt(&long_name_size) {
+            long_name_size = name.len();
+        }
+
         let file_type = entry.file_type().expect("Failed to get file type");
 
         // FIXME: "~" suffix for backups files is unknown
@@ -100,5 +106,6 @@ pub fn list_directory(path: &Path, args: &Args, ignore_mode: &IgnoreMode) -> Ent
     return EntryReturn {
         entries: entries_list,
         counts: file_type_count,
+        longest_name_len: long_name_size,
     };
 }

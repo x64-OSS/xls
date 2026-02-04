@@ -1,10 +1,11 @@
 use crate::{
     defs::{Entry, ListMode},
-    formatter::{
-        column_width, compute_layout, formatted_entry_size, get_user_name_by_id, visible_width,
-    },
+    formatter::formatted_entry_size,
     reader::EntryReturn,
+    utils::{column_width, compute_layout, get_user_name_by_id, visible_width},
 };
+
+use terminal_size::{Width, terminal_size};
 
 pub fn print_entries(entry_return: &EntryReturn, list_mode: &ListMode) {
     match list_mode {
@@ -32,10 +33,9 @@ fn print_default_entries(entry_return: &EntryReturn) {
         print_size += entry.name.len() + 2
     }
 
-    // Here 20 is the width of terminal, if the names of entries + 2 with each
-    // exceads the terminal width then it will print entries in column
-    let term_width = dimensions().unwrap().0;
-    if print_size > term_width {
+    let (Width(width), _) = terminal_size().expect("Failed to get terminal size");
+
+    if print_size > width.into() {
         print_column_entries(entry_return);
         return;
     }
@@ -48,6 +48,7 @@ fn print_default_entries(entry_return: &EntryReturn) {
 
 fn print_column_entries(entry_return: &EntryReturn) {
     let entries = &entry_return.entries;
+    let long_name_len = &entry_return.longest_name_len;
 
     if entries.is_empty() {
         return;
@@ -68,7 +69,7 @@ fn print_column_entries(entry_return: &EntryReturn) {
             let width = visible_width(name);
 
             if col == cols - 1 || idx + rows >= entries.len() {
-                print!("{}", name);
+                print!("{}  ", name);
             } else {
                 print!(
                     "{:<pad$}",
