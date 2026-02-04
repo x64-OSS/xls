@@ -58,14 +58,25 @@ pub fn list_directory(path: &Path, args: &Args, ignore_mode: &IgnoreMode) -> Ent
 
         let meta = entry.metadata().expect("Failed to read file metadata");
 
-        let owner = meta.uid();
-        let author = meta.gid();
+        let (permissions, size, owner, author, last_modified) = if args.long {
+            let permissions = Some(formatted_entry_permissions(&meta));
+            let size = Some(meta.size());
+            let owner = Some(meta.uid());
+            let author = Some(meta.gid());
 
-        let last_modified: String = if let Ok(time) = meta.modified() {
-            let syst = time_format::from_system_time(time).unwrap();
-            time_format::strftime_utc("%Y-%m-%d %H:%M:%S", syst).unwrap()
+            let last_modified = Some(
+                meta.modified()
+                    .ok()
+                    .and_then(|t| {
+                        let syst = time_format::from_system_time(t).ok()?;
+                        time_format::strftime_utc("%Y-%m-%d %H:%M:%S", syst).ok()
+                    })
+                    .unwrap_or_else(|| "--".to_string()),
+            );
+
+            (permissions, size, owner, author, last_modified)
         } else {
-            String::from("--")
+            (None, None, None, None, None)
         };
 
         let inode: Option<String> = if args.inode {
@@ -73,9 +84,6 @@ pub fn list_directory(path: &Path, args: &Args, ignore_mode: &IgnoreMode) -> Ent
         } else {
             None
         };
-
-        let size = meta.size();
-        let permissions = formatted_entry_permissions(&meta);
 
         entries_list.push(Entry {
             name,

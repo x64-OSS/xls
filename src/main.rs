@@ -18,6 +18,7 @@ fn main() {
     let sort_type = Args::parse_sort_type(&args);
     let ignore_mode = Args::parse_ignore_mode(&args);
     let list_mode = Args::parse_list_mode(&args);
+    // let time_style = Args::parse_time_style(&args);
 
     let path = Path::new(&args.path);
     let mut entry_return = list_directory(path, &args, &ignore_mode);

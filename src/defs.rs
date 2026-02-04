@@ -1,24 +1,24 @@
 use std::fs::FileType;
 
-use clap::{Parser};
+use clap::Parser;
 
 #[derive(Debug)]
 pub struct Entry {
     pub name: String,
-    pub size: u64,
+    pub size: Option<u64>,
     pub file_type: FileType,
-    pub permissions: String,
-    pub last_modified: String,
+    pub permissions: Option<String>,
+    pub last_modified: Option<String>,
     pub inode: Option<String>,
-    pub author: u32,
-    pub owner: u32
+    pub author: Option<u32>,
+    pub owner: Option<u32>,
 }
 
 #[derive(Debug)]
 pub struct FileTypeCount {
     pub files: usize,
     pub dirs: usize,
-    pub links: usize
+    pub links: usize,
 }
 
 pub enum SortType {
@@ -39,8 +39,16 @@ pub enum IgnoreMode {
 
 pub enum ListMode {
     Default,
-    List,
+    Long,
     Column,
+}
+
+#[derive(Debug, Clone)]
+pub enum TimeStyle {
+    FullISO,
+    LongISO,
+    ISO,
+    Locale,
 }
 
 #[derive(Parser, Debug)]
@@ -72,8 +80,8 @@ pub struct Args {
     #[arg(short, long, help = "print the index number of each file")]
     pub inode: bool,
 
-    #[arg(short, long, help = "Print entries in list format")]
-    pub list: bool,
+    #[arg(short, long, help = "Print entries in long format")]
+    pub long: bool,
 
     #[arg(short = 'C', long, help = "list entries by columns")]
     pub column: bool,
@@ -132,12 +140,16 @@ impl Args {
     }
 
     pub fn parse_list_mode(&self) -> ListMode {
-        if self.list {
-            ListMode::List
+        if self.long {
+            ListMode::Long
         } else if self.column {
             ListMode::Column
         } else {
             ListMode::Default
         }
+    }
+
+    pub fn parse_time_style(&self) -> TimeStyle {
+        TimeStyle::FullISO
     }
 }
