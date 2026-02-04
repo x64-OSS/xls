@@ -1,4 +1,5 @@
 use crate::{defs::ListMode, reader::EntryReturn};
+use term_size::dimensions;
 
 const PERM_WIDTH: usize = 12;
 const SIZE_WIDTH: usize = 6;
@@ -33,7 +34,8 @@ fn print_default_entries(entry_return: &EntryReturn) {
 
     // Here 20 is the width of terminal, if the names of entries + 2 with each
     // exceads the terminal width then it will print entries in column
-    if print_size > 20 {
+    let term_width = dimensions().unwrap().0;
+    if print_size > term_width {
         print_column_entries(entry_return);
         return;
     }
