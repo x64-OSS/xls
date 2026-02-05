@@ -108,8 +108,8 @@ fn build_long_rows(entries: &[Entry]) -> Vec<Vec<String>> {
                 row.push(formatted_entry_size(size));
             }
 
-            if let Some(modified) = &entry.last_modified {
-                row.push(modified.clone());
+            if let Some(modified) = &entry.modified {
+                row.push(modified);
             }
 
             row.push(entry.name.clone());

@@ -1,4 +1,6 @@
-use std::{fs::Metadata, os::unix::fs::PermissionsExt};
+use std::{fs::Metadata, os::unix::fs::PermissionsExt, time::SystemTime};
+
+use crate::defs::TimeStyle;
 
 pub fn formatted_entry_size(size: u64) -> String {
     const UNITS: [&str; 5] = ["B", "K", "M", "G", "T"];
@@ -35,4 +37,8 @@ pub fn formatted_entry_permissions(meta: &Metadata) -> String {
         .iter()
         .map(|(bit, ch)| if *bit != 0 { *ch } else { '-' })
         .collect()
+}
+
+pub fn formatted_time(time: SystemTime, style: TimeStyle) {
+    let time_for = time_format::from_system_time(time).expect("Failed to parser system time");
 }

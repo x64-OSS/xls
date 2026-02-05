@@ -26,10 +26,6 @@ pub fn list_directory(path: &Path, args: &Args, ignore_mode: &IgnoreMode) -> Ent
 
     for entry in entries.flatten() {
         let name = entry.file_name().to_string_lossy().to_string();
-        if name.len().gt(&long_name_size) {
-            long_name_size = name.len();
-        }
-
         let file_type = entry.file_type().expect("Failed to get file type");
 
         // FIXME: "~" suffix for backups files is unknown
@@ -62,27 +58,24 @@ pub fn list_directory(path: &Path, args: &Args, ignore_mode: &IgnoreMode) -> Ent
             name.normal().to_string()
         };
 
+        let name_len = strip_ansi_escapes::strip(&name).to_vec().len();
+        if name_len.gt(&long_name_size) {
+            long_name_size = name_len;
+        }
+
         let meta = entry.metadata().expect("Failed to read file metadata");
 
-        let (permissions, size, owner, author, last_modified) = if args.long {
+        let (permissions, size, owner, author, created, modified) = if args.long {
             let permissions = Some(formatted_entry_permissions(&meta));
             let size = Some(meta.size());
             let owner = Some(meta.uid());
             let author = Some(meta.gid());
+            let created = Some(meta.created().expect("Failed to get created time"));
+            let modified = Some(meta.modified().expect("Failed to get modified time"));
 
-            let last_modified = Some(
-                meta.modified()
-                    .ok()
-                    .and_then(|t| {
-                        let syst = time_format::from_system_time(t).ok()?;
-                        time_format::strftime_utc("%Y-%m-%d %H:%M:%S", syst).ok()
-                    })
-                    .unwrap_or_else(|| "--".to_string()),
-            );
-
-            (permissions, size, owner, author, last_modified)
+            (permissions, size, owner, author, created, modified)
         } else {
-            (None, None, None, None, None)
+            (None, None, None, None, None, None)
         };
 
         let inode: Option<String> = if args.inode {
@@ -95,7 +88,8 @@ pub fn list_directory(path: &Path, args: &Args, ignore_mode: &IgnoreMode) -> Ent
             name,
             size,
             permissions,
-            last_modified,
+            created,
+            modified,
             inode,
             file_type,
             author,
@@ -103,9 +97,9 @@ pub fn list_directory(path: &Path, args: &Args, ignore_mode: &IgnoreMode) -> Ent
         });
     }
 
-    return EntryReturn {
+    EntryReturn {
         entries: entries_list,
         counts: file_type_count,
         longest_name_len: long_name_size,
-    };
+    }
 }

@@ -1,4 +1,4 @@
-use std::fs::FileType;
+use std::{fs::FileType, time::SystemTime};
 
 use clap::Parser;
 
@@ -8,7 +8,8 @@ pub struct Entry {
     pub size: Option<u64>,
     pub file_type: FileType,
     pub permissions: Option<String>,
-    pub last_modified: Option<String>,
+    pub created: Option<SystemTime>,
+    pub modified: Option<SystemTime>,
     pub inode: Option<String>,
     pub author: Option<u32>,
     pub owner: Option<u32>,
@@ -23,12 +24,14 @@ pub struct FileTypeCount {
 
 pub enum SortType {
     SortName,
-    SortTime,
+    SortCreated,
+    SortModified,
     SortExtension,
     SortSize,
     SortVersion,
     SortNone,
     SortNumTypes,
+    SortTime
 }
 
 pub enum IgnoreMode {
